@@ -1,16 +1,23 @@
 ---
 
 global:
+
   scrape_interval:     15s
   evaluation_interval: 15s
 
   # Attach these labels to any time series or alerts when communicating with
   # external systems (federation, remote storage, Alertmanager).
   external_labels:
-    monitor: 'prometheus-master-federation'
+    monitor: 'prometheus-leader-federation'
 
 # Load and evaluate rules in this file every 'evaluation_interval' seconds.
+rule_files:
+    - alert.rules
 
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
 
 # A scrape configuration containing exactly one endpoint to scrape.
 scrape_configs:
@@ -20,17 +27,19 @@ scrape_configs:
   #   static_configs:
   #     - targets: ['localhost:9090']
 
-  - job_name: 'Master-Prometheus'
-    scrape_interval: 15s
+  - job_name: 'federate'
+    scrape_interval: 10s
 
     honor_labels: true
     metrics_path: '/federate'
 
     params:
       'match[]':
-        - '{job="dcos-metrics"}'
-        - '{__name__=~"job:.*"}'
+        - '{job="prometheus"}'
+        - '{job="node"}'
+        # - '{__name__=~"job:.*"}'
+        # - '{__name__=~"node.*"}'
 
     static_configs:
       - targets:
-        - 'prometheus-slave:9090'
+        - 'prometheus-follower:9090'

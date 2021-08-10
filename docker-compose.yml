@@ -1,89 +1,117 @@
 version: '3.5'
 
 networks:
-    val_monitoring_network:
+    monitoring_network:
 
 volumes:
-    prometheus_master_data: {}
-    prometheus_slave_data: {}
-    grafana_data: {}
-
+    prometheus_leader_data: {}
+    prometheus_follower_data: {}
+    grafana_leader_data: {}
+    grafana_follower_data: {}
 
 services:
+    prometheus-leader:
+        container_name: prometheus-leader
+        image: prom/prometheus
+        networks:
+            - monitoring_network
+        volumes:
+            - ./configs/prometheus-leader/prometheus.yml:/etc/prometheus/prometheus.yml
+            - ./configs/prometheus-leader/alerts/alert.rules:/etc/prometheus/alert.rules
+            - prometheus_leader_data:/prometheus
+        ports:
+            - "9090:9090"
+        command:
+            - '--config.file=/etc/prometheus/prometheus.yml'
+            - '--storage.tsdb.path=/prometheus'
+            - '--web.console.libraries=/etc/prometheus/console_libraries'
+            - '--web.console.templates=/etc/prometheus/consoles'
+        restart: unless-stopped
 
-        prometheus-master:
-            container_name: prometheus-master
-            image: prom/prometheus
-            labels:
-                org.label-schema.group: "val-monitoring"
-            networks:
-                - val_monitoring_network
-            volumes:
-                - ./configs/prometheus-master/prometheus.yml:/etc/prometheus/prometheus.yml
-                - prometheus_master_data:/prometheus
-            ports:
-                - "9090:9090"
-            command:
-                - '--config.file=/etc/prometheus/prometheus.yml'
-                #- '-alertmanager.url=http://alertmanager:9093' # ALERTMANAGER URL inside Docker networks
-                #################################################
-                - '--storage.tsdb.path=/prometheus'
-                - '--web.console.libraries=/etc/prometheus/console_libraries'
-                - '--web.console.templates=/etc/prometheus/consoles'
-            restart: unless-stopped
+    prometheus-follower:
+        container_name: prometheus-follower
+        image: prom/prometheus
+        networks:
+            - monitoring_network
+        volumes:
+            - ./configs/prometheus-follower/prometheus.yml:/etc/prometheus/prometheus.yml
+            - ./configs/prometheus-follower/records/node_exporter_recording.rules:/etc/prometheus/node_exporter_recording.rules
+            - ./configs/prometheus-follower/alerts/node_exporter_alert.rules:/etc/prometheus/node_exporter_alert.rules
+            - prometheus_follower_data:/prometheus
+        ports:
+            - "9099:9090"
+        command:
+            - '--config.file=/etc/prometheus/prometheus.yml'
+            - '--storage.tsdb.path=/prometheus'
+            - '--web.console.libraries=/etc/prometheus/console_libraries'
+            - '--web.console.templates=/etc/prometheus/consoles'
+        restart: unless-stopped
 
-        prometheus-slave:
-            container_name: prometheus-slave
-            image: prom/prometheus
-            labels:
-                org.label-schema.group: "val-monitoring"
-            networks:
-                - val_monitoring_network
-            volumes:
-                - ./configs/prometheus-slave/prometheus.yml:/etc/prometheus/prometheus.yml
-                - ./configs/prometheus-slave/records/node_exporter_recording.rules:/etc/prometheus/node_exporter_recording.rules
-                - ./configs/prometheus-slave/alerts/node_stats.rules:/etc/prometheus/node_stats.rules
-                - prometheus_slave_data:/prometheus
-            ports:
-                - "9099:9090"
-            command:
-                - '--config.file=/etc/prometheus/prometheus.yml'
-                #################################################
-                - '--storage.tsdb.path=/prometheus'
-                - '--web.console.libraries=/etc/prometheus/console_libraries'
-                - '--web.console.templates=/etc/prometheus/consoles'
-            # restart: unless-stopped
+    grafana_leader:
+        container_name: grafana_leader
+        image: grafana/grafana
+        networks:
+            - monitoring_network
+        volumes:
+            - ./configs/grafana-leader/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+            - ./configs/grafana-leader/provisioning/datasources/config.yml:/etc/grafana/provisioning/datasources/config.yml
+            - grafana_leader_data:/etc/grafana
+        environment:
+            - TERM=linux
+            - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+            - GF_SECURITY_ADMIN_USER=admin
+            - GF_SECURITY_ADMIN_PASSWORD=admin123456
+        ports:
+            - "3000:3000"
+        restart: unless-stopped
 
-        grafana_dashboard:
-            container_name: grafana_dashboard_federation
-            image: grafana/grafana
-            networks:
-                - val_monitoring_network
-            volumes:
-                - grafana_data:/etc/grafana
-            environment:
-                - TERM=linux
-                - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
-                - GF_SECURITY_ADMIN_USER=admin
-                - GF_SECURITY_ADMIN_PASSWORD=admin123456
-            ports:
-                - "3000:3000"
+    grafana_follower:
+        container_name: grafana_follower
+        image: grafana/grafana
+        networks:
+            - monitoring_network
+        volumes:
+            - ./configs/grafana-follower/provisioning/dashboards:/etc/grafana/provisioning/dashboards
+            - ./configs/grafana-follower/provisioning/datasources/config.yml:/etc/grafana/provisioning/datasources/config.yml
+            - grafana_follower_data:/etc/grafana
+        environment:
+            - TERM=linux
+            - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+            - GF_SECURITY_ADMIN_USER=admin
+            - GF_SECURITY_ADMIN_PASSWORD=admin123456
+        ports:
+            - "3001:3000"
+        restart: unless-stopped
 
-        node_exporter:
-            image: quay.io/prometheus/node-exporter:latest
-            container_name: node_exporter_stats
-            networks:
-                - val_monitoring_network
-            ports:
-                - "9100:9100"
-            expose:
-                - "9100"
-            # restart: unless-stopped
+    node_exporter:
+        image: quay.io/prometheus/node-exporter:latest
+        container_name: node_exporter_stats
+        networks:
+            - monitoring_network
+        ports:
+            - "9100:9100"
+        expose:
+            - "9100"
+        restart: unless-stopped
 
-        alertmanager:
-            image: prom/alertmanager
-            container_name: alertmanager
-            volumes:
-                - ./configs/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
-            ports:
-                - "9093:9093"
+    alertmanager:
+        image: prom/alertmanager
+        container_name: alertmanager
+        networks:
+            - monitoring_network
+        volumes:
+            - ./configs/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+        ports:
+            - "9093:9093"
+        restart: unless-stopped
+
+    dingtalk-robot:
+        image: timonwong/prometheus-webhook-dingtalk
+        container_name: dingtalk-robot
+        networks:
+            - monitoring_network
+        ports:
+            - "8060:8060"
+        volumes:
+            - ./configs/dingtalk/config.yml:/etc/prometheus-webhook-dingtalk/config.yml
+        restart: unless-stopped
