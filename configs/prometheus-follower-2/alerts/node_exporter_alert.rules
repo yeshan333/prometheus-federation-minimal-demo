@@ -1,0 +1,11 @@
+groups:
+- name: hostStatsAlert
+  rules:
+  - alert: hostMemUsageAlert
+    expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes)/node_memory_MemTotal_bytes > 0.50
+    for: 10s
+    labels:
+      severity: page
+    annotations:
+      summary: "Instance {{ $labels.instance }} MEM usgae high"
+      description: "{{ $labels.instance }} MEM usage above 50% (current value: {{ $value }})"

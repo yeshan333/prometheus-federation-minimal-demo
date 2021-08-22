@@ -37,9 +37,11 @@ scrape_configs:
       'match[]':
         - '{job="prometheus"}'
         - '{job="node"}'
+        - '{job="blackbox"}'
         # - '{__name__=~"job:.*"}'
         # - '{__name__=~"node.*"}'
 
     static_configs:
       - targets:
-        - 'prometheus-follower:9090'
+        - 'prometheus-follower-1:9090'
+        - 'prometheus-follower-2:9090'

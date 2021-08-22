@@ -5,7 +5,8 @@ networks:
 
 volumes:
     prometheus_leader_data: {}
-    prometheus_follower_data: {}
+    prometheus_follower_1_data: {}
+    prometheus_follower_2_data: {}
     grafana_leader_data: {}
     grafana_follower_data: {}
 
@@ -28,18 +29,37 @@ services:
             - '--web.console.templates=/etc/prometheus/consoles'
         restart: unless-stopped
 
-    prometheus-follower:
-        container_name: prometheus-follower
+    prometheus-follower-1:
+        container_name: prometheus-follower-1
         image: prom/prometheus
         networks:
             - monitoring_network
         volumes:
-            - ./configs/prometheus-follower/prometheus.yml:/etc/prometheus/prometheus.yml
-            - ./configs/prometheus-follower/records/node_exporter_recording.rules:/etc/prometheus/node_exporter_recording.rules
-            - ./configs/prometheus-follower/alerts/node_exporter_alert.rules:/etc/prometheus/node_exporter_alert.rules
-            - prometheus_follower_data:/prometheus
+            - ./configs/prometheus-follower-1/prometheus.yml:/etc/prometheus/prometheus.yml
+            - ./configs/prometheus-follower-1/records/node_exporter_recording.rules:/etc/prometheus/node_exporter_recording.rules
+            - ./configs/prometheus-follower-1/alerts/node_exporter_alert.rules:/etc/prometheus/node_exporter_alert.rules
+            - prometheus_follower_1_data:/prometheus
         ports:
             - "9099:9090"
+        command:
+            - '--config.file=/etc/prometheus/prometheus.yml'
+            - '--storage.tsdb.path=/prometheus'
+            - '--web.console.libraries=/etc/prometheus/console_libraries'
+            - '--web.console.templates=/etc/prometheus/consoles'
+        restart: unless-stopped
+
+    prometheus-follower-2:
+        container_name: prometheus-follower-2
+        image: prom/prometheus
+        networks:
+            - monitoring_network
+        volumes:
+            - ./configs/prometheus-follower-2/prometheus.yml:/etc/prometheus/prometheus.yml
+            # - ./configs/prometheus-follower-2/records/node_exporter_recording.rules:/etc/prometheus/node_exporter_recording.rules
+            # - ./configs/prometheus-follower-2/alerts/node_exporter_alert.rules:/etc/prometheus/node_exporter_alert.rules
+            - prometheus_follower_2_data:/prometheus
+        ports:
+            - "9098:9090"
         command:
             - '--config.file=/etc/prometheus/prometheus.yml'
             - '--storage.tsdb.path=/prometheus'
@@ -92,6 +112,15 @@ services:
             - "9100:9100"
         expose:
             - "9100"
+        restart: unless-stopped
+
+    blackbox_exporter:
+        image: prom/blackbox-exporter
+        container_name: blackbox_exporter
+        networks:
+            - monitoring_network
+        ports:
+            - "9115:9115"
         restart: unless-stopped
 
     alertmanager:

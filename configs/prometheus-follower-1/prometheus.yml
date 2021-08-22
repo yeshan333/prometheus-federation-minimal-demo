@@ -8,7 +8,7 @@ global:
   # Attach these labels to any time series or alerts when communicating with
   # external systems (federation, remote storage, Alertmanager).
   external_labels:
-      monitor: 'prometheus-follower'
+      monitor: 'prometheus-follower-1'
 
 # Load and evaluate rules in this file every 'evaluation_interval' seconds.
 rule_files:
@@ -28,7 +28,22 @@ scrape_configs:
     static_configs:
       - targets: ['node_exporter_stats:9100']
 
-  # - job_name: 'prometheus'
-  #   scrape_interval: 10s
+  - job_name: 'prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # - job_name: 'blackbox'
+  #   metrics_path: /probe
+  #   params:
+  #     module: [http_2xx]  # Look for a HTTP 200 response.
   #   static_configs:
-  #     - targets: ['localhost:9090']
+  #     - targets:
+  #       - https://baidu.com
+  #   relabel_configs:
+  #     - source_labels: [__address__]
+  #       target_label: __param_target
+  #     - source_labels: [__param_target]
+  #       target_label: instance
+  #     - target_label: __address__
+  #       replacement: blackbox_exporter:9115  # The blackbox exporter's real hostname:port.
