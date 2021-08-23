@@ -29,11 +29,31 @@ targets:
 docker-compose up
 ```
 
-Have fun!
+4、inspect
+
+- Grafana Leader
+  - address: [localhost:3030](localhost:3030)
+  - user: admin
+  - password: admin123456
+- Grafana Follower
+  - address: [localhost:3031](localhost:3031)
+  - user: admin
+  - password: admin123456
+- Prometheus Leader
+  - ui address: [localhost:9090](localhost:9090)
+- Prometheus Follower 1「Scrape Node Exporter」
+  - ui address: [localhost:9099](localhost:9099)
+- Prometheus Follower 2「Scrape Blackbox Exporter」
+  - ui address: [localhost:9098](localhost:9098)
+- Node Exporter: [localhost:9100](localhost:9100)
+- Blackbox Exporter: [localhost:9115](localhost:9115)
+- dingtalk robot: [localhost:8060](localhost:8060)
+
+Have fun! Learn more details at `configs` directory.
 
 ---
 
-container running.
+Running container:
 
 ```
 $ docker-compose ps
