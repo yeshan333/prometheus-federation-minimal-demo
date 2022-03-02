@@ -14,7 +14,7 @@
 ## Targets, previously was known as "profiles"
 targets:
   webhook1:
-    url: https://oapi.dingtalk.com/robot/send?access_token=915f4482d2af97e848294fe9cb5001f215eaaba31bf28d71bf6a4d9f3ae48bfa
+    url: https://hooks.slack.com/services/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
   # webhook2:
   #   url: https://oapi.dingtalk.com/robot/send?access_token=xxxxxxxxxxxx
   # webhook_legacy:

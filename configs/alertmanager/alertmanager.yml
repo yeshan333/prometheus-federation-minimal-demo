@@ -22,8 +22,10 @@ route:
   group_wait: 30s
   group_interval: 5m
   repeat_interval: 4h
-  receiver: 'send_to_dingding_webhook'
+  receiver: 'send_to_slack_webhook'
 receivers:
-- name: 'send_to_dingding_webhook'
-  webhook_configs:
-  - url: 'http://dingtalk-robot:8060/dingtalk/webhook1/send'
+- name: 'send_to_slack_webhook'
+  slack_configs:
+    - api_url: 'https://hooks.slack.com/services/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'
+      channel: "#alertmanager"
+      send_resolved: true
