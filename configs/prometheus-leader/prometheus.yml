@@ -22,11 +22,43 @@ alerting:
 # A scrape configuration containing exactly one endpoint to scrape.
 scrape_configs:
 
+  - job_name: "node"
+    scrape_interval: 5s
+    honor_labels: true
+    metrics_path: 'metrics'
+    params:
+      'match[]':
+        - '{job="prometheus"}'
+        - '{job="node"}'
+        - '{job="cadvisor"}'
+    static_configs:
+      - targets: ['10.1.105.235:9100']
+
   - job_name: 'prometheus'
     scrape_interval: 10s
+    honor_labels: true
+    metrics_path: 'metrics'
+    params:
+      'match[]':
+        - '{job="prometheus"}'
+        - '{job="node"}'
+        - '{job="cadvisor"}'
     static_configs:
       - targets: ['10.1.105.235:9090']
 
+  - job_name: 'cadvisor'
+    scrape_interval: 10s
+    honor_labels: true
+    metrics_path: 'metrics'
+    params:
+      'match[]':
+        - '{job="prometheus"}'
+        - '{job="node"}'
+        - '{job="cadvisor"}'
+    static_configs:
+      - targets:
+        - '10.1.105.235:8080'
+        
 #   - job_name: 'federate'
 #     scrape_interval: 10s
 
@@ -46,20 +78,4 @@ scrape_configs:
 #         - 'prometheus-follower-1:9090'
 #         - 'prometheus-follower-2:9090'
 
-  - job_name: 'cadvisor'
-    scrape_interval: 10s
 
-    honor_labels: true
-    metrics_path: 'metrics'
-
-    params:
-      'match[]':
-        - '{job="prometheus"}'
-        - '{job="node"}'
-        - '{job="blackbox"}'
-        # - '{__name__=~"job:.*"}'
-        # - '{__name__=~"node.*"}'
-
-    static_configs:
-      - targets:
-        - '10.1.105.235:8080'
