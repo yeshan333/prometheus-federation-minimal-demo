@@ -1,0 +1,31 @@
+# route:
+#   receiver: 'send_to_dingding_webhook' # 'default-receiver'
+#   group_wait: 30s
+#   group_interval: 5m
+#   repeat_interval: 4h
+#   group_by: [cluster, alertname]
+#   routes:
+#   - name: 'send_to_dingding_webhook'
+#     webhook_configs:
+#     - url: 'http://dingtalk-robot:8060/dingtalk/webhook1/send'
+  # - receiver: 'database-pager'
+  #   group_wait: 10s
+  #   match_re:
+  #     service: mysql|cassandra
+  # - receiver: 'frontend-pager'
+  #   group_by: [product, environment]
+  #   match:
+  #     team: frontend
+
+route:
+  group_by: [alertname, job]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: 'send_to_slack_webhook'
+receivers:
+- name: 'send_to_slack_webhook'
+  slack_configs:
+    - api_url: 'https://hooks.slack.com/services/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'
+      channel: "#alertmanager"
+      send_resolved: true
