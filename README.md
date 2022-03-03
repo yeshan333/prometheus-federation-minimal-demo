@@ -17,4 +17,8 @@ cd prometheus-federation-minimal-demo.git
 
 ```shell
 docker-compose up -d
+<<<<<<< HEAD
 ```
+=======
+```
+>>>>>>> 2a55bffb3daac154fab413c5ddca071509e92897
